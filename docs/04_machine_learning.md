@@ -1,59 +1,54 @@
-# Modelleme veri hattı
+# 04 — Machine Learning
 
-Bu aşama yalnızca model girdilerini, hedefi ve kronolojik veri bölümlerini hazırlar. Model eğitimi ve Streamlit uygulaması bu kapsamda değildir.
+Bu aşamada üç yöntem aynı hedef zamanları üzerinde karşılaştırılır:
 
-## Tahmin anı ve hedef
+1. **Son ölçüm (Baseline):** t anındaki son Appliances ölçümünü t+10 tahmini kabul eder.
+2. **Linear Regression:** Eğitim bölümündeki örneklerle doğrusal regresyon öğrenir.
+3. **Random Forest:** Eğitim bölümündeki örneklerle 200 ağaçlı regresyon modeli öğrenir.
 
-Her satırın tahmin anı **t**'dir. Model, t anında erişilebilen son ölçümü ve geçmişi kullanarak **t+10 dakika** zamanındaki `Appliances` değerini (Wh) tahmin eder.
+Hedef, t+10 dakikadaki `Appliances` tüketimidir ve Wh cinsindendir.
 
-- `origin_time`: tahminin yapıldığı an, t
-- `target_time`: tahmin edilen ölçümün zamanı, t+10 dakika
-- `target_appliances_wh`: t+10 dakikada ölçülen hedef değer
-- `current__...`: t anında ölçülen diğer sensör/hava durumu sütunları
-- `appliances_lag_0`: t anındaki son Appliances ölçümü
-- `appliances_lag_1`: t-10 dakika ölçümü; diğer lag'ler geriye gider
-- `appliances_rolling_mean_N`: t dahil t ve öncesindeki son N ölçümün ortalaması
+## Veri sızıntısını önleme ve adil karşılaştırma
 
-Hareketli ortalama pencereleri sağa hizalıdır (`center=False`); gelecekteki satırları kullanmaz. Son satırın t+10 hedefi bulunmadığından ve geçmiş penceresi tamamlanmayan ilk satırlar bulunduğundan bu satırlar eğitim tablosundan çıkarılır.
+- Özellikler yalnızca t anında veya daha önce erişilebilen ölçümlerden üretilir.
+- `target_time` ve `target_appliances_wh` model girdisi değildir.
+- Üç yöntem aynı train, validation ve test satırlarını kullanır.
+- Öğrenen iki model yalnızca eğitim bölümünde fit edilir.
+- Baseline, her örnekte `appliances_lag_0` değerini tahmin olarak döndürür.
+- Model seçimi doğrulama MAE değerine göre yapılır.
+- Test bölümü seçim için kullanılmaz; seçim tamamlandıktan sonra üç yöntemin nihai performansını raporlamak için kullanılır.
 
-## İki satırlık örnek
+## Metrikler
 
-| Ölçüm zamanı | Appliances (Wh) | T1 |
-|---|---:|---:|
-| 10:00 (t) | 30 | 21.0 |
-| 10:10 (t+10) | 42 | 21.5 |
+- **MAE (Wh):** Mutlak tahmin hatalarının ortalaması. Küçük olması daha iyidir.
+- **RMSE (Wh):** Hataların karelerinin ortalamasının karekökü. Büyük hataları daha fazla cezalandırır. Küçük olması daha iyidir.
 
-10:00 anında oluşturulan örnek:
+Her iki metrik doğrudan Wh cinsinden raporlanır. Gerçek veri üzerinde çalıştırılmamış sonuç/rakam verilmez.
 
-| Alan | Kullanılan değer | Açıklama |
-|---|---:|---|
-| `appliances_lag_0` | 30 Wh | t anındaki son Appliances ölçümü |
-| `current__T1` | 21.0 | t anındaki sıcaklık |
-| `target_time` | 10:10 | Hedef zamanı; model girdisi değildir |
-| `target_appliances_wh` | 42 Wh | Öğrenilecek hedef; model girdisi değildir |
+## Çalıştırma
 
-**Kullanılmaz:** 10:10 satırındaki T1=21.5 ve diğer gelecekteki sensör sütunları. 42 Wh yalnızca hedef etikettir; özellik üretiminde kullanılmaz.
+CSV dosyası `data/raw/energydata_complete.csv` konumunda olmalıdır.
 
-## Veri bölme
+Windows PowerShell (proje kök dizininde, sanal ortam açıkken):
 
-`chronological_split`, örnekleri `target_time` alanına göre eskiden yeniye sıralar ve varsayılan olarak %70 eğitim, %15 doğrulama, %15 test bölümü oluşturur. Karıştırma yapılmaz. En yeni hedef zamanları test bölümünde kalır.
-
-## Kullanım
-
-```python
-from energy_forecast.data_analysis.data_loader import load_energy_data
-from energy_forecast.machine_learning.features import (
-    build_supervised_dataset, chronological_split, get_feature_columns,
-)
-
-raw_data = load_energy_data()
-supervised = build_supervised_dataset(raw_data)
-train, validation, test = chronological_split(supervised)
-feature_columns = get_feature_columns(supervised)
-
-X_train, y_train = train[feature_columns], train["target_appliances_wh"]
-X_validation, y_validation = validation[feature_columns], validation["target_appliances_wh"]
-X_test, y_test = test[feature_columns], test["target_appliances_wh"]
+```powershell
+$env:PYTHONPATH = "$PWD\src"
+python -m energy_forecast.machine_learning.model_comparison
 ```
 
-`target_time` raporlama ve zaman bazlı değerlendirme içindir; `get_feature_columns` tarafından model girdilerinden çıkarılır.
+macOS/Linux:
+
+```bash
+export PYTHONPATH="$PWD/src"
+python -m energy_forecast.machine_learning.model_comparison
+```
+
+Komut önce doğrulama tablosunu ve doğrulama MAE değerine göre seçilen modeli, ardından üç yöntemin test MAE/RMSE değerlerini yazdırır.
+
+## Sonuçları yorumlama
+
+Doğrulama tablosunda Baseline ilk sıradaysa, bu veri bölümünde daha karmaşık modeller son ölçüm tahminini geçememiştir; basit yöntem açıkça en iyi model olarak raporlanır.
+
+Test tablosu üç yöntemin son performansını gösterir. Testte baseline daha iyi görünse bile doğrulama aşamasında yapılan seçim değiştirilmez. Test, model seçmek veya hiperparametre ayarlamak için kullanılmamalıdır.
+
+Komut çalıştırılmadan önce MAE/RMSE değerleri bilinemez; örnek veya uydurma performans rakamları kullanılmamalıdır.
