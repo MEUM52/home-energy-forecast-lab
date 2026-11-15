@@ -1,0 +1,19 @@
+# Data handling and analysis
+numpy
+pandas
+matplotlib
+seaborn
+
+# UCI dataset access
+ucimlrepo
+
+# Machine learning
+scikit-learn
+
+# Streamlit application
+streamlit
+
+# Notebooks and tests
+jupyter
+ipykernel
+pytest
