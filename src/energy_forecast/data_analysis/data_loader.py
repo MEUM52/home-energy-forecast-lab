@@ -9,6 +9,7 @@
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from pandas.errors import EmptyDataError, ParserError
 
@@ -120,6 +121,13 @@ def load_energy_data(file_path=None):
             raise ValueError(
                 f"'{column}' sütununda {invalid_count} sayısal olmayan "
                 "veya boş değer var."
+            )
+
+        non_finite_count = int((~np.isfinite(converted)).sum())
+        if non_finite_count:
+            raise ValueError(
+                f"'{column}' sütununda {non_finite_count} sonlu olmayan "
+                "değer (inf veya -inf) var."
             )
         data[column] = converted
 
