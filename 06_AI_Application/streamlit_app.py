@@ -17,6 +17,9 @@ ARTIFACT_PATH = PROJECT_ROOT / "models" / "energy_forecast_demo.joblib"
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))
 
+from energy_forecast.prediction.alert import is_high_consumption
+
+
 BASELINE_NAME = "Son ölçüm (Baseline)"
 EXPECTED_ARTIFACT_VERSION = 1
 
@@ -202,7 +205,7 @@ with threshold_col:
         help="Tahmin bu değeri aşarsa yüksek tüketim uyarısı gösterilir.",
     )
 
-if predicted_wh > threshold_wh:
+if is_high_consumption(predicted_wh, threshold_wh):
     st.warning("⚠️ Yüksek tüketim bekleniyor")
 else:
     st.success("Tahmin seçilen tüketim eşiğini aşmıyor.")
