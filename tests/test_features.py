@@ -23,9 +23,17 @@ def test_target_is_next_ten_minute_measurement():
     data = make_data()
     prepared = build_supervised_dataset(data, lag_steps=(0, 1), rolling_windows=(2,))
     first = prepared.iloc[0]
+
     assert first["origin_time"] == data.loc[1, "date"]
     assert first["target_time"] == data.loc[2, "date"]
+    assert first["target_time"] - first["origin_time"] == pd.Timedelta(minutes=10)
     assert first["target_appliances_wh"] == data.loc[2, "Appliances"]
+
+    # Every prepared row must map its target to the raw measurement at t + 10.
+    raw_values = data.set_index("date")["Appliances"]
+    for row in prepared.itertuples():
+        assert row.target_time - row.origin_time == pd.Timedelta(minutes=10)
+        assert row.target_appliances_wh == raw_values.loc[row.target_time]
 
 
 def test_features_do_not_use_future_sensor_values():
@@ -61,6 +69,10 @@ def test_target_and_timestamps_are_not_features():
 def test_chronological_split_is_ordered_and_disjoint():
     prepared = build_supervised_dataset(make_data(60), lag_steps=(0, 1), rolling_windows=(2,))
     train, validation, test = chronological_split(prepared, 0.6, 0.2, 0.2)
+
+    assert train["target_time"].is_monotonic_increasing
+    assert validation["target_time"].is_monotonic_increasing
+    assert test["target_time"].is_monotonic_increasing
     assert train["target_time"].max() < validation["target_time"].min()
     assert validation["target_time"].max() < test["target_time"].min()
     assert len(train) + len(validation) + len(test) == len(prepared)
