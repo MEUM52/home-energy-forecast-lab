@@ -12,6 +12,7 @@ scikit-learn
 
 # Streamlit application
 streamlit
+joblib
 
 # Notebooks and tests
 jupyter

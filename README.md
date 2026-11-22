@@ -20,7 +20,7 @@ Derin öğrenme bölümü isteğe bağlıdır; ilk sürümün çalışması içi
 - **Kaynak:** [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction)
 - **Kapsam:** Bir ev ortamındaki enerji tüketimi ve çevresel ölçümler.
 
-Ham veri dosyaları `data/raw/` altında tutulacaktır. Veri seti ve türetilmiş veri dosyaları Git'e eklenmez. Veri indirme ve hazırlama adımları proje geliştikçe uygulamaya eklenecektir.
+Ham veri dosyaları `data/raw/` altında tutulur. Veri seti ve türetilmiş veri dosyaları Git'e eklenmez. Veri dosyasını yerleştirme ve demo modelini hazırlama adımları için [06_AI_Application yönergelerine](06_AI_Application/README.md) bakın.
 
 ## Teknoloji ve bağımlılıklar
 
@@ -42,7 +42,7 @@ Proje klasöründe aşağıdaki komutları sırayla çalıştırın:
 
 ```powershell
 py -3 -m venv .venv
-..venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -73,13 +73,14 @@ python -m pip list
 
 ## Uygulamayı çalıştırma
 
-Streamlit uygulamasının başlangıç dosyası:
+Önce UCI CSV dosyasını `data/raw/energydata_complete.csv` konumuna yerleştirin ve modelleri/test kayıtlarını yerel demo dosyasına hazırlayın:
 
 ```bash
-streamlit run app/streamlit_app.py
+python 06_AI_Application/prepare_demo.py
+streamlit run 06_AI_Application/streamlit_app.py
 ```
 
-> Başlangıç dosyası henüz oluşturulmadı. Uygulama dosyaları sonraki geliştirme aşamalarında eklenecektir.
+Streamlit ekranı geçmiş test kayıtları üzerinde tahmin demosudur; canlı sensör takibi yapmaz. Uygulama açılışta modeli yeniden eğitmez. Ayrıntılar için [06_AI_Application/README.md](06_AI_Application/README.md) dosyasına bakın.
 
 ## Proje aşamaları
 
