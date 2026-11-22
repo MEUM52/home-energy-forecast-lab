@@ -1,6 +1,6 @@
 # 05 — Deep Learning (İsteğe Bağlı)
 
-<badge>Opsiyonel modül</badge>
+**Durum: İsteğe bağlı (opsiyonel)**
 
 Bu modül, temel proje akışını tamamlamak için gerekli değildir. Python, veri analizi ve temel makine öğrenmesi modüllerini tamamlayan öğrenciler için ileri seviye ek çalışma alanıdır.
 
