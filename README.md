@@ -119,19 +119,18 @@ data/raw/energydata_complete.csv
 
 ## Testleri çalıştırma
 
-Testler veri yükleyiciyi, t → t+10 dakika hedef eşleştirmesini, kronolojik bölmeyi, baseline/metrikleri ve eşik uyarısını kontrol eder.
+Testler veri yükleyiciyi, t → t+10 dakika hedef eşleştirmesini, kronolojik bölmeyi, baseline/metrikleri ve eşik uyarısını kontrol eder. `tests/conftest.py`, `src/` klasörünü pytest import yoluna otomatik ekler; bu nedenle ayrıca `PYTHONPATH` tanımlaman gerekmez.
 
-### Windows PowerShell
-
-```powershell
-$env:PYTHONPATH = "$PWD\src"
-python -m pytest -q
-```
-
-### macOS / Linux
+Proje ana klasöründe, sanal ortam açıkken her işletim sisteminde:
 
 ```bash
-PYTHONPATH=src python -m pytest -q
+python -m pytest -v
+```
+
+Windows PowerShell'de alternatif olarak:
+
+```powershell
+py -m pytest -v
 ```
 
 Başarılı çalıştırmada pytest test sayısını ve `passed` sonucunu gösterir.
